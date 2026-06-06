@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INT3X - Unified Threat Intelligence Report</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <title>Threat Intelligence Report // Quellostanco / INT3X</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <style>
         body { margin: 0; padding: 0; background-color: #0a0c0f; color: #c9d4e0; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -360,8 +361,6 @@
               background: PALETTE.bg, minHeight: "100vh", fontFamily: "'IBM Plex Mono', monospace",
               color: PALETTE.text,
             }}>
-              <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-
               <div style={{
                 background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}`,
                 padding: "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -503,7 +502,7 @@
                     <Card>
                       <h3 style={{ color: PALETTE.yellow, margin: "0 0 12px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Psychological / Behavioral Profile</h3>
                       <p style={{ fontSize: 13, lineHeight: 1.8, margin: 0, color: PALETTE.text }}>
-                        The actor demonstrates a <strong style={{ color: PALETTE.heading }}>reputation-driven mindset</strong> combined with technical competence. His Reddit post criticizing the Egyptian hacking community for lacking real skills — followed by recruiting via that same post — reveals a desire for peer validation and leadership status. His bios across HackerOne and Bugcrowd ("The system rots in silence. I no longer resist—I observe." / "I stopped trying to fix the system. Now I just listen to it bleed.") suggest an <strong style={{ color: PALETTE.heading }}>edgy nihilistic persona</strong> cultivated for credibility. Despite technical capability in Linux systems administration and penetration testing, his OPSEC failures (alias reuse, Git commit leakage, phone-as-password) indicate overconfidence and insufficient operational discipline.
+                        The actor demonstrates a <strong style={{ color: PALETTE.heading }}>reputation-driven mindset</strong> combined with technical competence. His Reddit post criticizing the Egyptian hacking community for lacking real skills — followed by recruiting via that same post — reveals a desire for peer validation and leadership status. His bios across HackerOne and Bugcrowd suggest an <strong style={{ color: PALETTE.heading }}>edgy nihilistic persona</strong> cultivated for credibility. Despite technical capability in Linux systems administration and penetration testing, his OPSEC failures indicate overconfidence and insufficient operational discipline.
                       </p>
                     </Card>
                   </Section>
@@ -548,7 +547,7 @@
                     <Card style={{ marginTop: 20, borderLeft: `3px solid ${PALETTE.accent2}` }}>
                       <h3 style={{ color: PALETTE.accent2, margin: "0 0 10px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Supply Chain Highlight (DarkAtlas / Buguard)</h3>
                       <p style={{ margin: 0, fontSize: 13, lineHeight: 1.8, color: PALETTE.text }}>
-                        The most technically sophisticated element of this campaign is the <strong style={{ color: PALETTE.heading }}>mutreasury payment gateway compromise</strong>. As documented by Buguard's DarkAtlas platform ("Inside Modern Supply Chain Intrusions: From CI/CD Abuse to Ecosystem-Wide Compromise"), this attack follows the pattern of <strong style={{ color: PALETTE.heading }}>supply-chain lateral movement</strong>: rather than attacking 28 universities individually, the actor identified and exploited mutreasury as a shared dependency — a single trusted node with inherited access to downstream institutions. The claimed zero-day vector, combined with exposed ERP API keys and admin credentials, represents <strong style={{ color: PALETTE.heading }}>T1195/T1199 supply-chain exploitation</strong> at scale.
+                        The most technically sophisticated element of this campaign is the <strong style={{ color: PALETTE.heading }}>mutreasury payment gateway compromise</strong>. As documented by Buguard's DarkAtlas platform, this attack follows the pattern of <strong style={{ color: PALETTE.heading }}>supply-chain lateral movement</strong>: rather than attacking 28 universities individually, the actor identified and exploited mutreasury as a shared dependency — a single trusted node with inherited access to downstream institutions. The claimed zero-day vector, combined with exposed ERP API keys and admin credentials, represents <strong style={{ color: PALETTE.heading }}>T1195/T1199 supply-chain exploitation</strong> at scale.
                       </p>
                     </Card>
                   </Section>
@@ -627,7 +626,7 @@
                       <Card>
                         <h3 style={{ color: PALETTE.accent, margin: "0 0 12px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Geographic Focus</h3>
                         <p style={{ fontSize: 13, lineHeight: 1.8, margin: 0, color: PALETTE.text }}>
-                          <strong style={{ color: PALETTE.heading }}>100% Egypt-focused.</strong> All confirmed targets are Egyptian organizations. The actor is himself Egyptian (Giza area), making this a case of <strong style={{ color: PALETTE.accent2 }}>domestic threat actor targeting domestic infrastructure</strong> — an important distinction for law enforcement jurisdiction and attribution confidence.
+                          <strong style={{ color: PALETTE.heading }}>100% Egypt-focused.</strong> All confirmed targets are Egyptian organizations. The actor is himself Egyptian (Giza area), making this a case of <strong style={{ color: PALETTE.accent2 }}>domestic threat actor targeting domestic infrastructure</strong>.
                         </p>
                       </Card>
                       <Card>
@@ -750,7 +749,7 @@
                       <h3 style={{ color: PALETTE.accent, margin: "0 0 10px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Sources Used in This Report</h3>
                       {[
                         { label: "PRIMARY SOURCE 1", val: "DeXpose.io – 'Unmasking Quellostanco: How a Git Commit Exposed a Threat Actor Targeting Egyptian Infrastructure' (Published: May 18, 2026; Collaborative investigation with Buguard)" },
-                        { label: "PRIMARY SOURCE 2", val: "DarkAtlas / Buguard – 'Inside Modern Supply Chain Intrusions: From CI/CD Abuse to Ecosystem-Wide Compromise' (Buguard platform; covers mutreasury supply-chain vector)" },
+                        { label: "PRIMARY SOURCE 2", val: "DarkAtlas / Buguard – 'Inside Modern Supply Chain Intrusions: From CI/CD Abuse to Ecosystem-Wide Compromise'" },
                         { label: "CORROBORATING", val: "DarkForums breach dataset, 2024 ULP credential dataset, Infostealer log records, HackerOne/Bugcrowd public profiles, Reddit public posts, LinkedIn public profile, GitHub commit history" },
                         { label: "METHODOLOGY", val: "All evidence derived from publicly available or previously leaked data. No unauthorized system access performed. OSINT methodology throughout. False-positive prevention: every attribution step corroborated by multiple independent sources before advancement." },
                       ].map((s, i) => (
