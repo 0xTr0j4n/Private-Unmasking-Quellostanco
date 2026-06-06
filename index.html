@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INT3X - Unified Threat Intelligence Report</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #0a0c0f; color: #c9d4e0; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0c0f; }
+        ::-webkit-scrollbar-thumb { background: #1e2730; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const NAV = [
+          { id: "exec", label: "Executive Summary" },
+          { id: "profile", label: "Actor Profile" },
+          { id: "timeline", label: "Timeline" },
+          { id: "ttps", label: "TTPs Analysis" },
+          { id: "infra", label: "Infrastructure" },
+          { id: "targeting", label: "Targeting & Motivation" },
+          { id: "attribution", label: "Attribution" },
+          { id: "evidence", label: "Key Evidence" },
+        ];
+
+        const PALETTE = {
+          bg: "#0a0c0f",
+          panel: "#0f1318",
+          border: "#1e2730",
+          accent: "#e8424a",
+          accent2: "#f0853a",
+          accent3: "#3a8ef0",
+          text: "#c9d4e0",
+          muted: "#5a6a7a",
+          heading: "#eef2f7",
+          green: "#2ecf7a",
+          yellow: "#f0d03a",
+          red: "#e8424a",
+        };
+
+        const TIMELINE_DATA = [
+          {
+            date: "Nov 11, 2023",
+            phase: "Pre-Crime",
+            color: PALETTE.accent3,
+            event: "Git Commit Metadata Leaked",
+            platform: "GitHub (personal account: Quell*tanco / Selva***A5)",
+            detail: "Personal email address baked into commit metadata in a public repository. Display name also exposed within project files. This single commit becomes the linchpin of later attribution.",
+            evidence: "DeXpose Report – 'The Git Trail' section",
+          },
+          {
+            date: "~Early 2024",
+            phase: "Footprint",
+            color: PALETTE.accent3,
+            event: "Dark Forum Registration (DarkForums)",
+            platform: "DarkForums (cybercrime forum)",
+            detail: "Quellostanco registers on DarkForums. Forum data later leaked, exposing registration IPs (majority VPN, three resolving to Egyptian networks) and email quellostanco@onionmail.",
+            evidence: "DeXpose Report – 'Initial Username Correlation' section; DarkForums breach dataset",
+          },
+          {
+            date: "~2024",
+            phase: "Footprint",
+            color: PALETTE.accent3,
+            event: "HackerOne & Bugcrowd Profile Creation",
+            platform: "HackerOne (quello_stanco) / Bugcrowd",
+            detail: "Actor creates bug bounty profiles under quello_stanco variant. Both profiles use INT3X group imagery. Bio fragments later used as pivot points to correlate Reddit account.",
+            evidence: "DeXpose Report – 'Persona Reuse Across Platforms' section",
+          },
+          {
+            date: "~2024",
+            phase: "Recruitment",
+            color: PALETTE.yellow,
+            event: "Reddit Recruitment Post",
+            platform: "Reddit (Arabic-language post)",
+            detail: "Posted an Arabic-language rant criticizing the Egyptian hacking scene for chasing status over skill. Challenged readers to contact him directly. Investigation later confirmed this post was used to recruit INT3X members.",
+            evidence: "DeXpose Report – 'Persona Reuse Across Platforms' section",
+          },
+          {
+            date: "2024 (ULP dataset)",
+            phase: "OPSEC Failure",
+            color: PALETTE.red,
+            event: "Infostealer Compromise of Own Device",
+            platform: "Infostealer logs / 2024 ULP dataset",
+            detail: "Actor's personal device previously compromised by infostealer malware. Git commit email appeared in 2024 ULP dataset with phone number used as password. Residential address also exposed in log data.",
+            evidence: "DeXpose Report – 'Confirming the identity' section",
+          },
+          {
+            date: "Jan–Feb 2026",
+            phase: "Escalation",
+            color: PALETTE.accent2,
+            event: "INT3X Group Formally Constituted",
+            platform: "Dark web forums / Session messenger",
+            detail: "Quellostanco founds INT3X team, recruiting CrowStealer and bigF as core collaborators. Group establishes shared forum account for advertising operations. Session ID published as contact method.",
+            evidence: "DeXpose Report – 'Direct Communication with quellostanco' section",
+          },
+          {
+            date: "Feb 9, 2026",
+            phase: "Active Operations",
+            color: PALETTE.accent,
+            event: "EgyptAir Database Advertised for Sale",
+            platform: "Cybercrime forum (INT3X account)",
+            detail: "Quellostanco advertises ~104,000 records from EgyptAir's HR and recruitment systems. Data includes employee info, resumes, phone numbers, internal documents, and authentication credentials.",
+            evidence: "DeXpose Report – 'Who is quellostanco?' section; forum screenshot",
+          },
+          {
+            date: "Feb 23, 2026",
+            phase: "Active Operations",
+            color: PALETTE.accent,
+            event: "Egyptalum Website Defacement",
+            platform: "Egyptalum (aluminium company website)",
+            detail: "Quellostanco defaces Egyptalum website, claims full system access. Defacement signed under INT3X banner. Website defacement used as proof-of-breach for credibility on forums.",
+            evidence: "DeXpose Report – 'Who is quellostanco?' section; defacement screenshot",
+          },
+          {
+            date: "Feb 25, 2026",
+            phase: "Active Operations",
+            color: PALETTE.accent,
+            event: "General Authority for Roads & Bridges Breach",
+            platform: "Cybercrime forum; target: government authority",
+            detail: "Quellostanco (in collaboration with CrowStealer) claims breach of Egypt's General Authority for Roads, Bridges and Land Transport. Data exfiltrated from Contract Extract System.",
+            evidence: "DeXpose Report – 'Who is quellostanco?' section; forum screenshot",
+          },
+          {
+            date: "May 10, 2026",
+            phase: "Peak Activity",
+            color: PALETTE.accent,
+            event: "Mansoura University – 989,000 Student Records",
+            platform: "Cybercrime forum (INT3X group post)",
+            detail: "INT3X (CrowStealer, Quellostanco, bigF) advertises breach of Mansoura University. Claims 10GB+ data: ~989,000 student records (2012–2025/26), student photographs, research material, internal documents.",
+            evidence: "DeXpose Report – 'Who is quellostanco?' section; forum screenshot",
+          },
+          {
+            date: "May 14, 2026",
+            phase: "Peak Activity",
+            color: PALETTE.accent,
+            event: "mutreasury Payment Gateway – Zero-Day Claim",
+            platform: "Cybercrime forum; DarkAtlas blog (Buguard)",
+            detail: "INT3X claims breach of mutreasury payment gateway impacting 28+ Egyptian universities. Exposure includes admin credentials, ERP API keys, student transaction data. Threat actors explicitly claimed exploitation of a zero-day vulnerability. DarkAtlas (Buguard) documents this as a supply-chain/CI-CD ecosystem-wide compromise vector.",
+            evidence: "DeXpose Report – 'Who is quellostanco?' section; DarkAtlas – 'Inside Modern Supply Chain Intrusions' blog",
+          },
+          {
+            date: "May 17, 2026",
+            phase: "Peak Activity",
+            color: PALETTE.accent,
+            event: "pat.edu.eg Defacement",
+            platform: "pat.edu.eg (Egyptian educational platform)",
+            detail: "INT3X compromises and defaces pat.edu.eg, leaving a public message directed at the Egyptian community. This high-visibility action triggers community OSINT counter-investigation.",
+            evidence: "DeXpose Report – 'Who is quellostanco?' section; defacement screenshot",
+          },
+          {
+            date: "May 17–18, 2026",
+            phase: "Attribution",
+            color: PALETTE.green,
+            event: "DeXpose / Buguard Attribution Complete",
+            platform: "DeXpose.io + DarkAtlas.io (Buguard)",
+            detail: "Collaborative investigation concludes. Full uncensored attribution package (real-world identity, all supporting evidence) compiled and handed to Egyptian law enforcement authorities.",
+            evidence: "DeXpose Report – 'Conclusion & Final Notes'; DarkAtlas blog",
+          },
+          {
+            date: "Post May 17, 2026",
+            phase: "Decline",
+            color: PALETTE.muted,
+            event: "Account Deletion / Username Changes",
+            platform: "GitHub, Upwork, HackerOne",
+            detail: "After pat.edu.eg defacement drew community attention, actor begins deleting or renaming accounts. Triggered by increased traffic on Upwork and LinkedIn profiles. Attribution was already complete before cleanup.",
+            evidence: "DeXpose Report – 'Deletion of his accounts' section",
+          },
+        ];
+
+        const TTPS = [
+          {
+            phase: "Initial Access",
+            techniques: [
+              { id: "T1190", name: "Exploit Public-Facing Application", detail: "Exploitation of web-facing applications including the mutreasury payment gateway (claimed zero-day). Webshell or direct access to contract extract systems at GARB." },
+              { id: "T1078", name: "Valid Accounts", detail: "Admin credentials and API keys obtained from mutreasury breach used for persistent access across 28+ university systems." },
+            ],
+          },
+          {
+            phase: "Persistence",
+            techniques: [
+              { id: "T1505.003", name: "Web Shell", detail: "Defacements of Egyptalum and pat.edu.eg imply persistent shell access to web servers, with the ability to modify content at will." },
+              { id: "T1078", name: "Valid Accounts (API Keys)", detail: "ERP API keys extracted from mutreasury provide long-term programmatic access without requiring re-exploitation." },
+            ],
+          },
+          {
+            phase: "Privilege Escalation",
+            techniques: [
+              { id: "T1068", name: "Exploitation for Privilege Escalation", detail: "Full system control claimed over Egyptalum ('gained full control over its systems'). Supply-chain position via mutreasury provides privileged administrative access across downstream universities." },
+            ],
+          },
+          {
+            phase: "Defense Evasion",
+            techniques: [
+              { id: "T1090", name: "Proxy (VPN/OnionMail)", detail: "VPN usage for forum registration. OnionMail address for operational communications. Session messenger (no phone number required) for C2 communications." },
+              { id: "T1036", name: "Masquerading", detail: "Operated legitimate Upwork/HackerOne profiles as cover for professional identity while conducting criminal operations under alias." },
+            ],
+          },
+          {
+            phase: "Credential Access",
+            techniques: [
+              { id: "T1552", name: "Unsecured Credentials", detail: "mutreasury breach exposed admin login credentials and ERP API keys stored in accessible system configurations. Student transaction data exposed." },
+              { id: "T1110", name: "Brute Force / Credential Stuffing", detail: "Access to HR/recruitment databases (EgyptAir) suggests credential-based access or SQLi into authentication systems." },
+            ],
+          },
+          {
+            phase: "Discovery",
+            techniques: [
+              { id: "T1592", name: "Gather Victim Host Information", detail: "Reconnaissance of target infrastructure prior to breaches. Contract Extract System data at GARB implies network-level discovery." },
+              { id: "T1596", name: "Search Open Technical Databases", detail: "Supply-chain reconnaissance of university payment infrastructure to identify mutreasury as a single point of compromise across 28 institutions." },
+            ],
+          },
+          {
+            phase: "Lateral Movement",
+            techniques: [
+              { id: "T1199", name: "Trusted Relationship (Supply Chain)", detail: "Critical: mutreasury compromise served as lateral movement vehicle — single breach providing access to 28+ downstream university systems. Classic supply-chain pivot." },
+            ],
+          },
+          {
+            phase: "Collection",
+            techniques: [
+              { id: "T1213", name: "Data from Information Repositories", detail: "Extraction of HR databases (EgyptAir), student records databases (Mansoura ~989K records), contract data (GARB), administrative credentials (mutreasury)." },
+              { id: "T1530", name: "Data from Cloud Storage", detail: "ERP API key extraction suggests cloud or SaaS data access across university platforms." },
+            ],
+          },
+          {
+            phase: "Exfiltration",
+            techniques: [
+              { id: "T1041", name: "Exfiltration Over C2 Channel", detail: "10GB+ data claimed exfiltrated from Mansoura University. Data packaged for forum advertisement and sale." },
+            ],
+          },
+          {
+            phase: "Impact",
+            techniques: [
+              { id: "T1491.001", name: "Defacement – Internal / External", detail: "Website defacements: Egyptalum (Feb 23), pat.edu.eg (May 17). Used to signal system access and build criminal reputation." },
+              { id: "T1486", name: "Data Encrypted / Sold for Impact", detail: "Databases advertised for sale on cybercrime forums. Financial impact to victims through data exposure and potential credential abuse." },
+            ],
+          },
+        ];
+
+        const INFRA = [
+          { node: "quellostanco", type: "Primary Alias", color: PALETTE.accent, links: ["quello_stanco (HackerOne)", "Quell*tanco (GitHub)", "Quello$tanco (Session)", "quellostanco@onionmail", "quellostanco@outlook.com"] },
+          { node: "INT3X Group", type: "Threat Actor Collective", color: PALETTE.accent2, links: ["Quellostanco (founder)", "CrowStealer / Dig Bick", "bigF", "DarkForums account", "Discord server"] },
+          { node: "Session ID: 05b2d87d...", type: "Encrypted Comms", color: PALETTE.accent3, links: ["Quellostanco (advertised on forums)", "ettaproject (alt Discord account)"] },
+          { node: "DarkForums", type: "Primary Forum", color: PALETTE.muted, links: ["INT3X forum account", "EgyptAir listing", "Mansoura listing", "mutreasury listing"] },
+          { node: "GitHub (Quell*tanco)", type: "Infrastructure / OPSEC Failure", color: PALETTE.accent3, links: ["Nov 2023 commit (leaked email)", "CTF write-up (LinkedIn pivot)", "Real name in project files"] },
+          { node: "Discord (Selva***A5)", type: "Team Communications", color: PALETTE.accent3, links: ["INT3X team channel", "bigF", "Dig Bick (CrowStealer)", "ettaproject (alt account)"] },
+        ];
+
+        const TARGETS = [
+          { sector: "Aviation", org: "EgyptAir", data: "~104,000 HR/recruitment records", date: "Feb 9, 2026" },
+          { sector: "Manufacturing / Industry", org: "Egyptalum", data: "Full system access claimed; defacement", date: "Feb 23, 2026" },
+          { sector: "Government", org: "General Authority for Roads, Bridges & Land Transport", data: "Contract Extract System data", date: "Feb 25, 2026" },
+          { sector: "Education", org: "Mansoura University", data: "~989,000 student records (2012–2026), photos, research, internal docs", date: "May 10, 2026" },
+          { sector: "Financial / Payment Infrastructure", org: "mutreasury Payment Gateway", data: "Admin credentials, ERP API keys, student transactions — 28+ universities impacted", date: "May 14, 2026" },
+          { sector: "Education (Platform)", org: "pat.edu.eg", data: "Website defaced; community message left", date: "May 17, 2026" },
+        ];
+
+        const EVIDENCE = [
+          { ref: "E-01", source: "DeXpose / Git Commit (Nov 11, 2023)", claim: "Personal email leaked in GitHub commit metadata", significance: "Critical — linchpin of attribution chain. Links GitHub alias to real email address." },
+          { ref: "E-02", source: "DarkForums breach dataset", claim: "IP addresses tied to quellostanco account; three resolve to Egyptian networks", significance: "High — geographic anchor despite VPN use." },
+          { ref: "E-03", source: "DarkForums breach dataset", claim: "leakdealer account uses OnionMail address containing 'quellostanco'", significance: "High — cross-platform alias correlation." },
+          { ref: "E-04", source: "HackerOne profile (quello_stanco)", claim: "Profile uses INT3X group image; address field shows Giza, Egypt", significance: "High — geographic confirmation; group affiliation." },
+          { ref: "E-05", source: "Reddit account", claim: "Bio merges elements from both HackerOne and Bugcrowd bios; Arabic posts about Egyptian hacking scene; FiverrGigs Linux sysadmin posts", significance: "High — unique bio fingerprint links all three platforms." },
+          { ref: "E-06", source: "2024 ULP dataset (infostealer logs)", claim: "Git commit email found with phone number used as password, ending in '94'", significance: "Critical — phone number becomes cross-corroboration anchor." },
+          { ref: "E-07", source: "quellostanco@outlook.com OSINT", claim: "Egyptian Microsoft account; phone number ending in '94'", significance: "Critical — two independent paths (Outlook OSINT + ULP breach) converge on identical phone digits." },
+          { ref: "E-08", source: "Crowdsourced caller-ID lookup", claim: "Phone number saved by multiple contacts under actor's real name + institute name (Arabic)", significance: "Critical — de-anonymizes the phone number to a specific named individual." },
+          { ref: "E-09", source: "Upwork profile (associated email)", claim: "'Expert Linux system administrator and Network & security specialist'", significance: "High — professional identity corroborates Reddit FiverrGigs Linux posts." },
+          { ref: "E-10", source: "LinkedIn profile", claim: "Contains photo, birth date (March 26), phone number (verified), references same GitHub CTF repo", significance: "Critical — final confirmation; visual ID + verified phone number." },
+          { ref: "E-11", source: "Direct Session communication (DeXpose operative)", claim: "Actor confirmed as INT3X founder; claimed Reddit used to recruit members; provided Session ID matching Quello$tanco account name", significance: "High — self-incrimination; confirms leadership role and recruitment method." },
+          { ref: "E-12", source: "Discord screen-share (accidental exposure)", claim: "Actor shared screen via 'ettaproject' account, revealing Discord server list and associated users", significance: "Medium-High — maps team communications infrastructure." },
+          { ref: "E-13", source: "DarkAtlas (Buguard) blog — 'Inside Modern Supply Chain Intrusions'", claim: "mutreasury breach documented as supply-chain/CI-CD ecosystem-wide compromise vector impacting 28+ universities", significance: "High — technical corroboration of INT3X's zero-day claim; supply-chain pivot methodology confirmed." },
+          { ref: "E-14", source: "Forum screenshots (INT3X account)", claim: "Five separate breach/defacement advertisements across Feb 9 – May 17, 2026", significance: "High — contemporaneous evidence of active campaign timeline." },
+        ];
+
+        function Section({ title, subtitle, children }) {
+          return (
+            <div style={{ marginBottom: 48 }}>
+              <div style={{ borderLeft: `3px solid ${PALETTE.accent}`, paddingLeft: 16, marginBottom: 24 }}>
+                <div style={{ fontSize: 11, letterSpacing: 3, color: PALETTE.accent, textTransform: "uppercase", marginBottom: 4 }}>
+                  {subtitle}
+                </div>
+                <h2 style={{ fontSize: 22, fontWeight: 700, color: PALETTE.heading, margin: 0, fontFamily: "'Syne', sans-serif" }}>
+                  {title}
+                </h2>
+              </div>
+              {children}
+            </div>
+          );
+        }
+
+        function Badge({ color, label }) {
+          return (
+            <span style={{
+              display: "inline-block", padding: "2px 10px", borderRadius: 3,
+              background: color + "22", border: `1px solid ${color}55`,
+              color, fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase",
+            }}>{label}</span>
+          );
+        }
+
+        function Card({ children, style = {} }) {
+          return (
+            <div style={{
+              background: PALETTE.panel, border: `1px solid ${PALETTE.border}`,
+              borderRadius: 6, padding: 20, ...style
+            }}>{children}</div>
+          );
+        }
+
+        function TTPRow({ phase, techniques }) {
+          const phaseColors = {
+            "Initial Access": PALETTE.accent,
+            "Persistence": PALETTE.accent2,
+            "Privilege Escalation": PALETTE.yellow,
+            "Defense Evasion": PALETTE.accent3,
+            "Credential Access": "#b04fff",
+            "Discovery": PALETTE.green,
+            "Lateral Movement": "#ff6eb4",
+            "Collection": PALETTE.accent2,
+            "Exfiltration": PALETTE.accent,
+            "Impact": PALETTE.red,
+          };
+          const c = phaseColors[phase] || PALETTE.muted;
+          return (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: c, flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: c, textTransform: "uppercase", letterSpacing: 2 }}>{phase}</span>
+              </div>
+              {techniques.map((t, i) => (
+                <div key={i} style={{
+                  marginLeft: 20, marginBottom: 8, background: PALETTE.bg,
+                  border: `1px solid ${PALETTE.border}`, borderRadius: 4, padding: "10px 14px",
+                }}>
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start", flexWrap: "wrap" }}>
+                    <Badge color={c} label={t.id} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: PALETTE.heading }}>{t.name}</span>
+                  </div>
+                  <p style={{ margin: "6px 0 0", fontSize: 12, color: PALETTE.text, lineHeight: 1.6 }}>{t.detail}</p>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        function App() {
+          const [active, setActive] = useState("exec");
+
+          return (
+            <div style={{
+              background: PALETTE.bg, minHeight: "100vh", fontFamily: "'IBM Plex Mono', monospace",
+              color: PALETTE.text,
+            }}>
+              <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+              <div style={{
+                background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}`,
+                padding: "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between",
+                flexWrap: "wrap", gap: 12,
+              }}>
+                <div>
+                  <div style={{ fontSize: 10, letterSpacing: 4, color: PALETTE.accent, textTransform: "uppercase", marginBottom: 4 }}>
+                    THREAT INTELLIGENCE REPORT // TLP:WHITE
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: PALETTE.heading, fontFamily: "'Syne', sans-serif", letterSpacing: 1 }}>
+                    QUELLOSTANCO <span style={{ color: PALETTE.muted, fontWeight: 400 }}>/ INT3X</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <Badge color={PALETTE.accent} label="ACTIVE THREAT" />
+                  <Badge color={PALETTE.accent2} label="Egypt Focused" />
+                  <Badge color={PALETTE.yellow} label="Attributed" />
+                  <span style={{ fontSize: 11, color: PALETTE.muted }}>Published: May 18, 2026 · Sources: DeXpose + Buguard/DarkAtlas</span>
+                </div>
+              </div>
+
+              <div style={{
+                background: PALETTE.panel, borderBottom: `1px solid ${PALETTE.border}`,
+                padding: "0 32px", display: "flex", gap: 0, overflowX: "auto",
+              }}>
+                {NAV.map(n => (
+                  <button key={n.id} onClick={() => setActive(n.id)} style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    padding: "12px 18px", fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase",
+                    color: active === n.id ? PALETTE.accent : PALETTE.muted,
+                    borderBottom: active === n.id ? `2px solid ${PALETTE.accent}` : "2px solid transparent",
+                    fontFamily: "'IBM Plex Mono', monospace", whiteSpace: "nowrap", transition: "color 0.2s",
+                  }}>{n.label}</button>
+                ))}
+              </div>
+
+              <div style={{ maxWidth: 1000, margin: "0 auto", padding: "40px 24px" }}>
+
+                {active === "exec" && (
+                  <Section title="Executive Summary" subtitle="Section 01">
+                    <Card style={{ marginBottom: 20, borderLeft: `3px solid ${PALETTE.accent}` }}>
+                      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.8, color: PALETTE.text }}>
+                        Between February and May 2026, a threat actor operating under the alias <strong style={{ color: PALETTE.heading }}>Quellostanco</strong> led a structured campaign targeting Egyptian critical infrastructure across aviation, industrial manufacturing, government administration, higher education, and national payment infrastructure. Operating under the collective banner <strong style={{ color: PALETTE.accent2 }}>INT3X</strong> — which he founded and led — alongside collaborators <strong style={{ color: PALETTE.heading }}>CrowStealer</strong> and <strong style={{ color: PALETTE.heading }}>bigF</strong>, the actor claimed responsibility for at least <strong style={{ color: PALETTE.accent }}>six distinct intrusions</strong> culminating in the advertised exposure of approximately <strong style={{ color: PALETTE.accent }}>~1.1 million+ records</strong>.
+                      </p>
+                    </Card>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
+                      {[
+                        { label: "Confirmed Victims", value: "6+", color: PALETTE.accent },
+                        { label: "Records Exposed", value: "~1.1M+", color: PALETTE.accent2 },
+                        { label: "Universities Impacted", value: "28+", color: PALETTE.yellow },
+                        { label: "Active Campaign Window", value: "~3.5 months", color: PALETTE.accent3 },
+                        { label: "Attribution Status", value: "Confirmed", color: PALETTE.green },
+                        { label: "Law Enforcement", value: "Notified", color: PALETTE.green },
+                      ].map((s, i) => (
+                        <Card key={i} style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 24, fontWeight: 800, color: s.color, fontFamily: "'Syne', sans-serif" }}>{s.value}</div>
+                          <div style={{ fontSize: 11, color: PALETTE.muted, textTransform: "uppercase", letterSpacing: 1, marginTop: 4 }}>{s.label}</div>
+                        </Card>
+                      ))}
+                    </div>
+
+                    <Card>
+                      <h3 style={{ color: PALETTE.heading, margin: "0 0 12px", fontSize: 14, textTransform: "uppercase", letterSpacing: 2 }}>Key Findings</h3>
+                      {[
+                        "Quellostanco is the founder and operational leader of the INT3X threat actor collective.",
+                        "The actor is a technically capable individual (Linux sysadmin background) based in Egypt, operating within the country he targets.",
+                        "The campaign's most significant action was the mutreasury payment gateway compromise — a supply-chain attack vector (documented by Buguard/DarkAtlas as CI/CD ecosystem abuse) that provided simultaneous access to 28+ Egyptian university systems via a claimed zero-day vulnerability.",
+                        "Attribution was achieved through the corroboration of six independent evidence chains: alias reuse, Git commit metadata, breach dataset correlation, infostealer logs, crowdsourced caller-ID, and LinkedIn verification.",
+                        "The full attribution package was compiled collaboratively by DeXpose and Buguard (DarkAtlas) and formally handed to Egyptian law enforcement on or around May 18, 2026.",
+                        "The actor began deleting accounts after community OSINT attention, but all identity data was captured before cleanup.",
+                      ].map((f, i) => (
+                        <div key={i} style={{ display: "flex", gap: 10, marginBottom: 10, alignItems: "flex-start" }}>
+                          <span style={{ color: PALETTE.accent, fontSize: 12, flexShrink: 0, marginTop: 2 }}>▸</span>
+                          <span style={{ fontSize: 13, lineHeight: 1.7, color: PALETTE.text }}>{f}</span>
+                        </div>
+                      ))}
+                    </Card>
+                  </Section>
+                )}
+
+                {active === "profile" && (
+                  <Section title="Actor Profile" subtitle="Section 02">
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                      <Card>
+                        <h3 style={{ color: PALETTE.accent, margin: "0 0 14px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Primary Identity</h3>
+                        {[
+                          ["Primary Alias", "quellostanco"],
+                          ["Stylized Variant", "Quello$tanco"],
+                          ["Forum Variant", "quello_stanco"],
+                          ["GitHub Variant", "Quell*tanco / Selva***A5"],
+                          ["Alt Account", "ettaproject (Discord)"],
+                          ["Alt Account", "leakdealer (OnionMail)"],
+                          ["Group", "INT3X (founder & leader)"],
+                          ["Role", "Breach operator, recruiter, forum advertiser"],
+                        ].map(([k, v], i) => (
+                          <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${PALETTE.border}`, gap: 10 }}>
+                            <span style={{ fontSize: 11, color: PALETTE.muted, textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>{k}</span>
+                            <span style={{ fontSize: 12, color: PALETTE.heading, textAlign: "right" }}>{v}</span>
+                          </div>
+                        ))}
+                      </Card>
+                      <Card>
+                        <h3 style={{ color: PALETTE.accent2, margin: "0 0 14px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Attribution Anchors</h3>
+                        {[
+                          ["Nationality", "Egyptian"],
+                          ["Location", "Giza area, Egypt (HackerOne profile)"],
+                          ["Birth Date", "March 26 (LinkedIn verified)"],
+                          ["Phone Suffix", "...94 (two independent sources)"],
+                          ["Profession", "Linux sysadmin / network & security specialist"],
+                          ["Platforms", "Upwork, HackerOne, Bugcrowd, Reddit, LinkedIn, GitHub"],
+                          ["Own Device", "Previously compromised by infostealer"],
+                          ["Law Enforcement", "Package handed over ~May 18, 2026"],
+                        ].map(([k, v], i) => (
+                          <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${PALETTE.border}`, gap: 10 }}>
+                            <span style={{ fontSize: 11, color: PALETTE.muted, textTransform: "uppercase", letterSpacing: 1, flexShrink: 0 }}>{k}</span>
+                            <span style={{ fontSize: 12, color: PALETTE.heading, textAlign: "right" }}>{v}</span>
+                          </div>
+                        ))}
+                      </Card>
+                    </div>
+
+                    <Card style={{ marginBottom: 16 }}>
+                      <h3 style={{ color: PALETTE.accent3, margin: "0 0 14px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>INT3X Collective Members</h3>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+                        {[
+                          { alias: "Quellostanco", role: "Founder / Lead Operator", color: PALETTE.accent },
+                          { alias: "CrowStealer", role: "Core Member (likely 'Dig Bick' on Discord)", color: PALETTE.accent2 },
+                          { alias: "bigF", role: "Core Member", color: PALETTE.accent3 },
+                        ].map((m, i) => (
+                          <div key={i} style={{ background: PALETTE.bg, border: `1px solid ${m.color}44`, borderRadius: 4, padding: 14 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: m.color, marginBottom: 4 }}>{m.alias}</div>
+                            <div style={{ fontSize: 11, color: PALETTE.muted }}>{m.role}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+
+                    <Card>
+                      <h3 style={{ color: PALETTE.yellow, margin: "0 0 12px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Psychological / Behavioral Profile</h3>
+                      <p style={{ fontSize: 13, lineHeight: 1.8, margin: 0, color: PALETTE.text }}>
+                        The actor demonstrates a <strong style={{ color: PALETTE.heading }}>reputation-driven mindset</strong> combined with technical competence. His Reddit post criticizing the Egyptian hacking community for lacking real skills — followed by recruiting via that same post — reveals a desire for peer validation and leadership status. His bios across HackerOne and Bugcrowd ("The system rots in silence. I no longer resist—I observe." / "I stopped trying to fix the system. Now I just listen to it bleed.") suggest an <strong style={{ color: PALETTE.heading }}>edgy nihilistic persona</strong> cultivated for credibility. Despite technical capability in Linux systems administration and penetration testing, his OPSEC failures (alias reuse, Git commit leakage, phone-as-password) indicate overconfidence and insufficient operational discipline.
+                      </p>
+                    </Card>
+                  </Section>
+                )}
+
+                {active === "timeline" && (
+                  <Section title="Timeline of Activity" subtitle="Section 03">
+                    <p style={{ fontSize: 12, color: PALETTE.muted, marginBottom: 24 }}>Chronological reconstruction from first known digital footprint through attribution and post-exposure behavior.</p>
+                    <div style={{ position: "relative" }}>
+                      <div style={{ position: "absolute", left: 80, top: 0, bottom: 0, width: 1, background: PALETTE.border }} />
+                      {TIMELINE_DATA.map((e, i) => (
+                        <div key={i} style={{ display: "flex", gap: 20, marginBottom: 20, position: "relative" }}>
+                          <div style={{ width: 80, flexShrink: 0, textAlign: "right" }}>
+                            <span style={{ fontSize: 10, color: PALETTE.muted, lineHeight: 1.4, display: "block" }}>{e.date}</span>
+                          </div>
+                          <div style={{ position: "relative", flexShrink: 0, display: "flex", alignItems: "flex-start", paddingTop: 2 }}>
+                            <div style={{ width: 12, height: 12, borderRadius: "50%", background: e.color, border: `2px solid ${PALETTE.bg}`, zIndex: 1, flexShrink: 0 }} />
+                          </div>
+                          <div style={{ flex: 1, paddingBottom: 4 }}>
+                            <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
+                              <Badge color={e.color} label={e.phase} />
+                              <span style={{ fontSize: 13, fontWeight: 600, color: PALETTE.heading }}>{e.event}</span>
+                            </div>
+                            <div style={{ fontSize: 11, color: PALETTE.muted, marginBottom: 6 }}>📡 {e.platform}</div>
+                            <div style={{ background: PALETTE.panel, border: `1px solid ${PALETTE.border}`, borderRadius: 4, padding: "10px 14px" }}>
+                              <p style={{ margin: 0, fontSize: 12, lineHeight: 1.7, color: PALETTE.text }}>{e.detail}</p>
+                              <div style={{ marginTop: 8, fontSize: 11, color: PALETTE.accent3 }}>
+                                <span style={{ color: PALETTE.muted }}>Source: </span>{e.evidence}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Section>
+                )}
+
+                {active === "ttps" && (
+                  <Section title="TTPs Analysis (MITRE ATT&CK)" subtitle="Section 04">
+                    <p style={{ fontSize: 12, color: PALETTE.muted, marginBottom: 24 }}>Behavioral classification mapped to MITRE ATT&CK Enterprise framework based on evidence from both source reports.</p>
+                    {TTPS.map((t, i) => <TTPRow key={i} {...t} />)}
+                    <Card style={{ marginTop: 20, borderLeft: `3px solid ${PALETTE.accent2}` }}>
+                      <h3 style={{ color: PALETTE.accent2, margin: "0 0 10px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Supply Chain Highlight (DarkAtlas / Buguard)</h3>
+                      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.8, color: PALETTE.text }}>
+                        The most technically sophisticated element of this campaign is the <strong style={{ color: PALETTE.heading }}>mutreasury payment gateway compromise</strong>. As documented by Buguard's DarkAtlas platform ("Inside Modern Supply Chain Intrusions: From CI/CD Abuse to Ecosystem-Wide Compromise"), this attack follows the pattern of <strong style={{ color: PALETTE.heading }}>supply-chain lateral movement</strong>: rather than attacking 28 universities individually, the actor identified and exploited mutreasury as a shared dependency — a single trusted node with inherited access to downstream institutions. The claimed zero-day vector, combined with exposed ERP API keys and admin credentials, represents <strong style={{ color: PALETTE.heading }}>T1195/T1199 supply-chain exploitation</strong> at scale.
+                      </p>
+                    </Card>
+                  </Section>
+                )}
+
+                {active === "infra" && (
+                  <Section title="Infrastructure & Ecosystem Mapping" subtitle="Section 05">
+                    <div style={{ marginBottom: 20 }}>
+                      {INFRA.map((n, i) => (
+                        <Card key={i} style={{ marginBottom: 12 }}>
+                          <div style={{ display: "flex", gap: 12, alignItems: "flex-start", flexWrap: "wrap" }}>
+                            <div style={{ flexShrink: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: n.color, marginBottom: 4 }}>{n.node}</div>
+                              <Badge color={n.color} label={n.type} />
+                            </div>
+                            <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: 8, paddingTop: 4 }}>
+                              {n.links.map((l, j) => (
+                                <span key={j} style={{
+                                  background: PALETTE.bg, border: `1px solid ${PALETTE.border}`,
+                                  borderRadius: 3, padding: "3px 10px", fontSize: 11, color: PALETTE.text,
+                                }}>→ {l}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+
+                    <Card style={{ borderLeft: `3px solid ${PALETTE.accent3}` }}>
+                      <h3 style={{ color: PALETTE.accent3, margin: "0 0 12px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Communication Infrastructure Summary</h3>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                        {[
+                          { label: "Primary Forums", value: "DarkForums", note: "Main market / advertisement platform" },
+                          { label: "Encrypted Comms", value: "Session Messenger", note: "No phone registration; ID: 05b2d87d..." },
+                          { label: "Team Comms", value: "Discord", note: "Private server; aliases: Selva***A5, ettaproject" },
+                          { label: "Criminal Email", value: "quellostanco@onionmail", note: "OnionMail for forum registration" },
+                          { label: "Personal Email", value: "quellostanco@outlook.com", note: "Linked to Egyptian Microsoft account" },
+                          { label: "Code Repository", value: "GitHub (Quell*tanco)", note: "OPSEC failure — email in commit metadata" },
+                        ].map((item, i) => (
+                          <div key={i} style={{ background: PALETTE.bg, border: `1px solid ${PALETTE.border}`, borderRadius: 4, padding: 12 }}>
+                            <div style={{ fontSize: 11, color: PALETTE.muted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>{item.label}</div>
+                            <div style={{ fontSize: 13, color: PALETTE.heading, fontWeight: 600, marginBottom: 4 }}>{item.value}</div>
+                            <div style={{ fontSize: 11, color: PALETTE.muted }}>{item.note}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </Section>
+                )}
+
+                {active === "targeting" && (
+                  <Section title="Targeting & Motivation Analysis" subtitle="Section 06">
+                    <div style={{ overflowX: "auto", marginBottom: 20 }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                        <thead>
+                          <tr style={{ background: PALETTE.panel }}>
+                            {["Sector", "Organization", "Data Type", "Date"].map(h => (
+                              <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: PALETTE.accent, fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, borderBottom: `1px solid ${PALETTE.border}` }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {TARGETS.map((t, i) => (
+                            <tr key={i} style={{ borderBottom: `1px solid ${PALETTE.border}`, background: i % 2 === 0 ? PALETTE.bg : PALETTE.panel }}>
+                              <td style={{ padding: "10px 14px", color: PALETTE.accent2, fontWeight: 600 }}>{t.sector}</td>
+                              <td style={{ padding: "10px 14px", color: PALETTE.heading }}>{t.org}</td>
+                              <td style={{ padding: "10px 14px", color: PALETTE.text, maxWidth: 300 }}>{t.data}</td>
+                              <td style={{ padding: "10px 14px", color: PALETTE.muted, whiteSpace: "nowrap" }}>{t.date}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                      <Card>
+                        <h3 style={{ color: PALETTE.accent, margin: "0 0 12px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Geographic Focus</h3>
+                        <p style={{ fontSize: 13, lineHeight: 1.8, margin: 0, color: PALETTE.text }}>
+                          <strong style={{ color: PALETTE.heading }}>100% Egypt-focused.</strong> All confirmed targets are Egyptian organizations. The actor is himself Egyptian (Giza area), making this a case of <strong style={{ color: PALETTE.accent2 }}>domestic threat actor targeting domestic infrastructure</strong> — an important distinction for law enforcement jurisdiction and attribution confidence.
+                        </p>
+                      </Card>
+                      <Card>
+                        <h3 style={{ color: PALETTE.accent2, margin: "0 0 12px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Victim Typology</h3>
+                        <p style={{ fontSize: 13, lineHeight: 1.8, margin: 0, color: PALETTE.text }}>
+                          Targets span <strong style={{ color: PALETTE.heading }}>high-data-density organizations</strong>: airline HR systems, university student databases, government contract systems, national payment gateways. The common thread is <strong style={{ color: PALETTE.accent2 }}>large PII volumes</strong> that are marketable on cybercrime forums.
+                        </p>
+                      </Card>
+                    </div>
+
+                    <Card style={{ borderLeft: `3px solid ${PALETTE.yellow}` }}>
+                      <h3 style={{ color: PALETTE.yellow, margin: "0 0 14px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Motivation Assessment</h3>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+                        {[
+                          { motive: "Financial", confidence: "HIGH", note: "All breaches advertised for sale on forums. Data monetization is the primary operational output.", color: PALETTE.accent },
+                          { motive: "Reputation", confidence: "HIGH", note: "Defacements with INT3X signature. Recruitment of members via public rants. Forum advertising of operations builds criminal credibility.", color: PALETTE.accent2 },
+                          { motive: "Ideological", confidence: "LOW", note: "Defacement messages directed at 'Egyptian community' suggest some nationalistic posturing, but primary driver is financial/reputational.", color: PALETTE.muted },
+                          { motive: "Opportunistic", confidence: "MEDIUM", note: "Target selection appears opportunistic within the Egyptian sector — organizations with accessible attack surfaces selected over strategic value.", color: PALETTE.yellow },
+                        ].map((m, i) => (
+                          <div key={i} style={{ background: PALETTE.bg, border: `1px solid ${m.color}44`, borderRadius: 4, padding: 12 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: m.color }}>{m.motive}</span>
+                              <Badge color={m.color} label={m.confidence} />
+                            </div>
+                            <p style={{ margin: 0, fontSize: 11, color: PALETTE.text, lineHeight: 1.6 }}>{m.note}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+                  </Section>
+                )}
+
+                {active === "attribution" && (
+                  <Section title="Attribution Assessment" subtitle="Section 07">
+                    <Card style={{ borderLeft: `3px solid ${PALETTE.green}`, marginBottom: 20 }}>
+                      <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
+                        <div>
+                          <div style={{ fontSize: 11, color: PALETTE.muted, textTransform: "uppercase", letterSpacing: 2, marginBottom: 4 }}>Attribution Confidence</div>
+                          <div style={{ fontSize: 36, fontWeight: 800, color: PALETTE.green, fontFamily: "'Syne', sans-serif" }}>HIGH</div>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 200 }}>
+                          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.8, color: PALETTE.text }}>
+                            Six independent evidence chains converge on a single individual. No single chain is definitive alone, but their corroboration eliminates reasonable doubt. Attribution package handed to Egyptian law enforcement. Actor confirmed real identity via LinkedIn with verified phone number. <strong style={{ color: PALETTE.heading }}>This is a named, identified individual — not an anonymous actor.</strong>
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                      <Card>
+                        <h3 style={{ color: PALETTE.accent3, margin: "0 0 12px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Individual vs. Group</h3>
+                        <p style={{ fontSize: 13, lineHeight: 1.8, margin: 0, color: PALETTE.text }}>
+                          <strong style={{ color: PALETTE.heading }}>Individual actor leading a small group.</strong> Quellostanco is a single identified person who recruited and coordinated CrowStealer and bigF under the INT3X banner. The group is small (3 confirmed members), ad-hoc rather than organized crime, and centralized around one founder with the others acting as operational collaborators.
+                        </p>
+                      </Card>
+                      <Card>
+                        <h3 style={{ color: PALETTE.accent2, margin: "0 0 12px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Skill Assessment</h3>
+                        <p style={{ fontSize: 13, lineHeight: 1.8, margin: 0, color: PALETTE.text }}>
+                          <strong style={{ color: PALETTE.heading }}>Intermediate — above script kiddie, below APT-level.</strong> Professional Linux sysadmin background with legitimate security knowledge (bug bounty profiles, CTF participation). Capable of web application exploitation, defacement operations, and supply-chain targeting. However, significant OPSEC failures across years of activity indicate no formal tradecraft training.
+                        </p>
+                      </Card>
+                    </div>
+
+                    <Card>
+                      <h3 style={{ color: PALETTE.green, margin: "0 0 14px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Attribution Evidence Chain</h3>
+                      {[
+                        { step: "1", label: "Alias Footprint", desc: "quellostanco → quello_stanco → Quell*tanco → Quello$tanco: same alias morphology across 6+ platforms over 3+ years." },
+                        { step: "2", label: "Git Metadata Leak", desc: "Nov 11, 2023 commit on GitHub exposes personal email address. Real name found in same repository's project files." },
+                        { step: "3", label: "Email → Phone Correlation (Path A)", desc: "quellostanco@outlook.com (guessed) → OSINT shows Egyptian Microsoft account + phone ending in ...94." },
+                        { step: "4", label: "Email → Phone Correlation (Path B)", desc: "Git commit email → 2024 ULP dataset → phone number used as password, ending in ...94. Completely independent path, same result." },
+                        { step: "5", label: "Phone → Real Identity", desc: "Phone number looked up via crowdsourced caller-ID → saved by multiple contacts under actor's real name + institute (Arabic)." },
+                        { step: "6", label: "LinkedIn Verification", desc: "LinkedIn profile identified via CTF write-up pivot. Contains photo, birth date (March 26), verified phone number matching ...94 suffix." },
+                      ].map((e, i) => (
+                        <div key={i} style={{ display: "flex", gap: 14, marginBottom: 12, alignItems: "flex-start" }}>
+                          <div style={{ width: 28, height: 28, borderRadius: "50%", background: PALETTE.green + "22", border: `1px solid ${PALETTE.green}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 12, color: PALETTE.green, fontWeight: 700 }}>{e.step}</div>
+                          <div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: PALETTE.heading, marginBottom: 4 }}>{e.label}</div>
+                            <div style={{ fontSize: 12, color: PALETTE.text, lineHeight: 1.7 }}>{e.desc}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </Card>
+                  </Section>
+                )}
+
+                {active === "evidence" && (
+                  <Section title="Key Evidence Catalogue" subtitle="Section 08">
+                    <p style={{ fontSize: 12, color: PALETTE.muted, marginBottom: 20 }}>Every major claim in this report is supported by at least one of the following documented evidence items.</p>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                        <thead>
+                          <tr style={{ background: PALETTE.panel }}>
+                            {["Ref", "Source", "Claim / Data Point", "Significance"].map(h => (
+                              <th key={h} style={{ padding: "10px 14px", textAlign: "left", color: PALETTE.accent, fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, borderBottom: `1px solid ${PALETTE.border}`, whiteSpace: "nowrap" }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {EVIDENCE.map((e, i) => (
+                            <tr key={i} style={{ borderBottom: `1px solid ${PALETTE.border}`, background: i % 2 === 0 ? PALETTE.bg : PALETTE.panel, verticalAlign: "top" }}>
+                              <td style={{ padding: "10px 14px", color: PALETTE.accent, fontWeight: 700, whiteSpace: "nowrap" }}>{e.ref}</td>
+                              <td style={{ padding: "10px 14px", color: PALETTE.muted, fontSize: 11, maxWidth: 160 }}>{e.source}</td>
+                              <td style={{ padding: "10px 14px", color: PALETTE.text, maxWidth: 280 }}>{e.claim}</td>
+                              <td style={{ padding: "10px 14px", color: PALETTE.heading, fontSize: 11, maxWidth: 200 }}>
+                                {e.significance.startsWith("Critical") ? (
+                                  <><Badge color={PALETTE.accent} label="Critical" /> <span style={{ marginLeft: 6 }}>{e.significance.replace("Critical — ", "")}</span></>
+                                ) : e.significance.startsWith("High") ? (
+                                  <><Badge color={PALETTE.accent2} label="High" /> <span style={{ marginLeft: 6 }}>{e.significance.replace("High — ", "")}</span></>
+                                ) : (
+                                  <><Badge color={PALETTE.muted} label="Medium" /> <span style={{ marginLeft: 6 }}>{e.significance.replace("Medium-High — ", "")}</span></>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <Card style={{ marginTop: 24, borderLeft: `3px solid ${PALETTE.accent}` }}>
+                      <h3 style={{ color: PALETTE.accent, margin: "0 0 10px", fontSize: 12, textTransform: "uppercase", letterSpacing: 2 }}>Sources Used in This Report</h3>
+                      {[
+                        { label: "PRIMARY SOURCE 1", val: "DeXpose.io – 'Unmasking Quellostanco: How a Git Commit Exposed a Threat Actor Targeting Egyptian Infrastructure' (Published: May 18, 2026; Collaborative investigation with Buguard)" },
+                        { label: "PRIMARY SOURCE 2", val: "DarkAtlas / Buguard – 'Inside Modern Supply Chain Intrusions: From CI/CD Abuse to Ecosystem-Wide Compromise' (Buguard platform; covers mutreasury supply-chain vector)" },
+                        { label: "CORROBORATING", val: "DarkForums breach dataset, 2024 ULP credential dataset, Infostealer log records, HackerOne/Bugcrowd public profiles, Reddit public posts, LinkedIn public profile, GitHub commit history" },
+                        { label: "METHODOLOGY", val: "All evidence derived from publicly available or previously leaked data. No unauthorized system access performed. OSINT methodology throughout. False-positive prevention: every attribution step corroborated by multiple independent sources before advancement." },
+                      ].map((s, i) => (
+                        <div key={i} style={{ marginBottom: 10 }}>
+                          <span style={{ fontSize: 10, color: PALETTE.accent, textTransform: "uppercase", letterSpacing: 2 }}>{s.label}: </span>
+                          <span style={{ fontSize: 12, color: PALETTE.text }}>{s.val}</span>
+                        </div>
+                      ))}
+                    </Card>
+                  </Section>
+                )}
+
+              </div>
+
+              <div style={{
+                borderTop: `1px solid ${PALETTE.border}`, padding: "16px 32px",
+                display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8,
+              }}>
+                <span style={{ fontSize: 10, color: PALETTE.muted, letterSpacing: 2 }}>TLP:WHITE — FOR PUBLIC DISTRIBUTION — QUELLOSTANCO / INT3X — UNIFIED THREAT INTELLIGENCE REPORT</span>
+                <span style={{ fontSize: 10, color: PALETTE.muted }}>Compiled: June 2026 | Sources: DeXpose + Buguard/DarkAtlas | Status: ATTRIBUTED & LAW ENFORCEMENT NOTIFIED</span>
+              </div>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
